@@ -1,7 +1,7 @@
 package com.streamchat.messaging.rabbitmq.consumer;
 
 import com.rabbitmq.client.Channel;
-import com.streamchat.messaging.rabbitmq.consumer.ProcessedEventRepository.ProcessedEvent;
+import com.streamchat.messaging.rabbitmq.consumer.ProcessedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.support.AmqpHeaders;

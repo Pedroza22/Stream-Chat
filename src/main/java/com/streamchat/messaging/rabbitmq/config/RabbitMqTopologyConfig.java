@@ -75,8 +75,7 @@ public class RabbitMqTopologyConfig {
                 .durable(RabbitMqProperties.DEFAULT_MSG_QUEUE)
                 .withArguments(Map.of(
                         "x-dead-letter-exchange",    RabbitMqProperties.DEFAULT_RETRY_EXCHANGE,
-                        "x-dead-letter-routing-key", RabbitMqProperties.DEFAULT_MSG_QUEUE,
-                        "x-delivery-limit",          3     // máximo 3 entregas antes de la DLQ
+                        "x-dead-letter-routing-key", RabbitMqProperties.DEFAULT_MSG_QUEUE
                 ))
                 .build();
     }
