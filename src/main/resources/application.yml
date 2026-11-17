@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/streamchat}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/streamchat}
     username: ${DB_USERNAME:streamchat}
     password: ${DB_PASSWORD:streamchat}
   jpa:
