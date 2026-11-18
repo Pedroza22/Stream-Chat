@@ -1,57 +1,90 @@
 services:
+
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
+    container_name: streamchat-postgres
     environment:
-      POSTGRES_DB: ${DB_NAME:-streamchat}
-      POSTGRES_USER: ${DB_USERNAME:-streamchat}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-streamchat}
+      POSTGRES_USER: ${POSTGRES_USER:-streamchat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-streamchat}
+    ports:
+      - "127.0.0.1:5433:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-streamchat} -d ${DB_NAME:-streamchat}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-streamchat} -d ${POSTGRES_DB:-streamchat}"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - backend
-    # Sin puertos publicados: PostgreSQL sólo es alcanzable dentro de la red interna.
 
-  app:
-    build: .
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: streamchat-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-streamchat}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-streamchat}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-streamchat}
+    ports:
+      - "127.0.0.1:5672:5672"       # AMQP — solo accesible desde localhost
+      - "127.0.0.1:15672:15672"     # Management UI — solo accesible desde localhost
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: streamchat-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: streamchat-kafka
     depends_on:
-      postgres:
+      zookeeper:
         condition: service_healthy
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-streamchat}
-      DB_USERNAME: ${DB_USERNAME:-streamchat}
-      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
-      PRESENCE_TYPING_TTL_MS: ${PRESENCE_TYPING_TTL_MS:-5000}
-      PRESENCE_EXPIRATION_SCAN_MS: ${PRESENCE_EXPIRATION_SCAN_MS:-2000}
-      PRESENCE_PUBLISHER: ${PRESENCE_PUBLISHER:-local}
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # Retención corta para eventos de actividad (efímeros)
+      KAFKA_LOG_RETENTION_HOURS: 1
+      KAFKA_LOG_RETENTION_BYTES: 104857600   # 100 MB
     ports:
-      # Durante el desarrollo sólo se expone en localhost; en producción queda detrás de Nginx.
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9092:9092"               # Solo accesible desde localhost
+    volumes:
+      - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
       interval: 15s
-      timeout: 5s
+      timeout: 10s
       retries: 5
-      start_period: 120s
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 768M
     restart: unless-stopped
-    networks:
-      - backend
 
 volumes:
-  postgres-data:
-
-networks:
-  backend:
-    driver: bridge
+  postgres_data:
+  rabbitmq_data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:

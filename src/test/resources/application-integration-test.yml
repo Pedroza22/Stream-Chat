@@ -1,0 +1,21 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  kafka:
+    listener:
+      auto-startup: false   # no arrancar listeners de Kafka en estos tests
+
+app:
+  jwt:
+    secret: dGVzdC1zZWNyZXQtZm9yLXRlc3RpbmctcHVycG9zZXMtb25seS0zMmNoYXJz
+    expiration-ms: 3600000
+  messaging:
+    outbox-relay-delay-ms: 500   # relay más rápido en tests
+    activity-topic: user-activity
