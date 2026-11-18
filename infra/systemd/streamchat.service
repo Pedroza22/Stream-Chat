@@ -1,0 +1,71 @@
+[Unit]
+# -----------------------------------------------------------------------------
+# Stream-Chat — Unit de systemd para desplegar la aplicación JAR SIN Docker.
+# Alternativa a `docker compose up -d`, útil para la fase 5 de la guía
+# (aplicación confinada con systemd: NoNewPrivileges, ProtectSystem, MemoryMax,
+# CPUQuota). Objetivo: `systemd-analyze security streamchat` < 3.
+#
+# Ubicación en el servidor: /etc/systemd/system/streamchat.service
+# -----------------------------------------------------------------------------
+Description=Stream-Chat (Spring Boot) - despliegue sin Docker
+Documentation=https://github.com/<org>/Stream-Chat
+# Arrancar después de tener red; no bloquea el arranque si tarda.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Ejecución simple (el proceso no hace fork).
+Type=simple
+
+# Usuario y grupo dedicados sin privilegios (mínimo privilegio).
+# Crear antes con:  sudo useradd --system --no-create-home \
+#                        --home-dir /opt/streamchat --shell /usr/sbin/nologin streamchat
+User=streamchat
+Group=streamchat
+
+# Directorio de trabajo donde vive el JAR y sus recursos.
+WorkingDirectory=/opt/streamchat
+
+# Variables de entorno (DB_URL, JWT_SECRET, brokers...). Fuera del repositorio
+# y con permisos 600:  sudo chmod 600 /etc/streamchat/streamchat.env
+EnvironmentFile=/etc/streamchat/streamchat.env
+
+# Opciones de la JVM. MaxRAMPercentage deja margen bajo MemoryMax; en OOM la
+# JVM termina para que systemd la reinicie (Restart=on-failure).
+Environment="JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError"
+
+# Comando de arranque de la aplicación.
+ExecStart=/usr/bin/java -jar /opt/streamchat/app.jar
+
+# Reinicio automático ante fallo (gestor de procesos, sección 9.1) con espera.
+Restart=on-failure
+RestartSec=10
+
+# --- Endurecimiento (systemd-analyze security) ------------------------------
+# Impide escalar privilegios (setuid/setgid, capabilities nuevas).
+NoNewPrivileges=true
+# Monta todo el sistema de archivos en solo lectura, salvo ReadWritePaths.
+ProtectSystem=strict
+# Aísla /home, /root y el home de los demás usuarios.
+ProtectHome=true
+# /tmp privado y propio del servicio (aislamiento).
+PrivateTmp=true
+# Rutas donde la app SÍ puede escribir (logs, archivos temporales de trabajo).
+# Deben existir antes de arrancar:
+#   sudo mkdir -p /opt/streamchat/logs /var/log/streamchat
+#   sudo chown -R streamchat:streamchat /opt/streamchat/logs /var/log/streamchat
+ReadWritePaths=/opt/streamchat/logs /var/log/streamchat
+
+# --- Límites de recursos (sección 9.1) --------------------------------------
+# Techo de memoria: al superarlo, el kernel invoca el OOM killer para el cgroup.
+MemoryMax=1G
+# Cuota de CPU: 150% = 1.5 núcleos como máximo.
+CPUQuota=150%
+# Máximo de procesos/hilos del servicio (acota el pool de hilos y conexiones).
+TasksMax=256
+# Máximo de descriptores de archivo (sesiones WebSocket, sockets, archivos).
+LimitNOFILE=65535
+
+[Install]
+# Arrancar con el sistema cuando el objetivo multi-usuario esté activo.
+WantedBy=multi-user.target

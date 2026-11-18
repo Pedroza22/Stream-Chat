@@ -74,3 +74,22 @@ com.streamchat.chat
     ├── security/      # JWT, Spring Security config
     └── websocket/     # WebSocket config, controllers, interceptors
 ```
+
+## Documentation
+
+| Ruta | Contenido |
+|------|-----------|
+| [docs/decisions/](docs/decisions/) | ADR (Architecture Decision Records): outbox, idempotencia, dos brokers, fan-out, identidad desde el token, dominio-JPA |
+| [docs/so/](docs/so/) | Informe de Sistemas Operativos: 4 gestores (procesos, memoria, archivos, E/S), experimentos E1–E6 y guion de sustentación |
+| [docs/security/](docs/security/) | Checklist de hardening, runbook de incidentes y guía de despliegue en AWS EC2 |
+| [infra/](infra/) | Configuración de despliegue seguro: Nginx (TLS + proxy WebSocket), nftables, systemd y monitoreo |
+
+## Observability
+
+| Métrica | Descripción |
+|---------|-------------|
+| `typing_states_active` | Número de estados de escritura activos (Gauge) |
+| `presence.typing.update.latency` | Latencia de procesamiento de eventos de actividad (Timer) |
+| `presence.activity.processed` | Total de eventos de actividad procesados (Counter) |
+
+Disponibles en `/actuator/metrics`.
