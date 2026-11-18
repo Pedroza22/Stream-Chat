@@ -74,13 +74,21 @@ public class StatusUpdatesConsumer {
         if (event.payload() instanceof TypingUpdatePayload p) {
             return p;
         }
-        // Jackson deserializa Object como LinkedHashMap — reconstruir manualmente
         if (event.payload() instanceof java.util.Map<?, ?> map) {
             try {
                 java.util.UUID groupId = java.util.UUID.fromString(map.get("groupId").toString());
                 java.util.UUID userId  = java.util.UUID.fromString(map.get("userId").toString());
                 boolean typing = Boolean.parseBoolean(map.get("typing").toString());
-                java.time.Instant occurredAt = java.time.Instant.parse(map.get("occurredAt").toString());
+                // occurredAt puede llegar como ISO-8601 o como epoch seconds (double)
+                java.time.Instant occurredAt;
+                String occurredAtStr = map.get("occurredAt").toString();
+                try {
+                    occurredAt = java.time.Instant.parse(occurredAtStr);
+                } catch (Exception e) {
+                    // Es un número (epoch seconds como double)
+                    double epochSeconds = Double.parseDouble(occurredAtStr);
+                    occurredAt = java.time.Instant.ofEpochMilli((long)(epochSeconds * 1000));
+                }
                 return new TypingUpdatePayload(groupId, userId, typing, occurredAt);
             } catch (Exception e) {
                 log.warn("status_backend: could not parse TypingUpdatePayload from map: {}", map);

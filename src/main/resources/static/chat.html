@@ -12,252 +12,497 @@
     header{background:#16213e;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #0f3460}
     header h1{font-size:1.1rem;color:#e94560}
     #status-bar{font-size:.75rem;color:#888;margin-left:auto}
-    #login-panel{flex:1;display:flex;align-items:center;justify-content:center}
-    #login-form{background:#16213e;padding:32px;border-radius:12px;width:340px;display:flex;flex-direction:column;gap:10px}
-    #login-form h2{color:#e94560;text-align:center;margin-bottom:4px}
-    .tab-row{display:flex;gap:6px}
-    .tab{flex:1;padding:8px;border-radius:6px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;background:#0f3460;color:#aaa;transition:all .2s}
+
+    /* ── Paneles ── */
+    #auth-panel,#group-panel,#chat-panel{flex:1;display:flex;align-items:center;justify-content:center}
+    #group-panel,#chat-panel{display:none}
+
+    /* ── Tarjeta ── */
+    .card{background:#16213e;padding:32px;border-radius:12px;width:360px;display:flex;flex-direction:column;gap:12px}
+    .card h2{color:#e94560;text-align:center;margin-bottom:4px}
+    .card p.sub{color:#888;font-size:.82rem;text-align:center;margin-top:-6px}
+
+    /* ── Tabs ── */
+    .tabs{display:flex;gap:6px}
+    .tab{flex:1;padding:9px;border-radius:6px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;background:#0f3460;color:#aaa;transition:all .2s}
     .tab.active{background:#e94560;color:#fff}
+
+    /* ── Inputs ── */
     input{padding:10px 12px;border-radius:8px;border:1px solid #0f3460;background:#0f3460;color:#e0e0e0;font-size:.9rem;width:100%}
-    input::placeholder{color:#666}
-    button.primary{padding:10px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;background:#e94560;color:white;width:100%;transition:opacity .2s}
-    button.primary:hover{opacity:.85}
-    #login-error{color:#e94560;font-size:.8rem;text-align:center;min-height:16px}
-    #group-id-box{background:#0f3460;border-radius:8px;padding:10px 12px;font-size:.8rem;display:none;word-break:break-all}
-    #group-id-box b{color:#e94560}
-    #chat-panel{flex:1;display:none;flex-direction:column}
-    #chat-header{background:#16213e;padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #0f3460;flex-wrap:wrap}
-    #chat-header .grp{font-weight:600;color:#e94560;font-size:.85rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    input::placeholder{color:#555}
+    input:focus{outline:none;border-color:#e94560}
+
+    /* ── Botones ── */
+    .btn{padding:11px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;width:100%;transition:opacity .2s}
+    .btn:hover{opacity:.85}
+    .btn-primary{background:#e94560;color:#fff}
+    .btn-secondary{background:#0f3460;color:#e0e0e0}
+
+    /* ── Mensajes de error/info ── */
+    .msg-box{border-radius:8px;padding:10px 12px;font-size:.82rem;text-align:center;min-height:36px;display:none}
+    .msg-box.error{background:#3d1a1a;color:#ff6b6b;display:block}
+    .msg-box.success{background:#1a3d2a;color:#6bffb0;display:block}
+    .msg-box.info{background:#1a2a3d;color:#6bb5ff;display:block}
+
+    /* ── Info del grupo ── */
+    #group-info{background:#0f3460;border-radius:8px;padding:10px 12px;font-size:.82rem;word-break:break-all;display:none}
+    #group-info b{color:#e94560}
+    .copy-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+    .copy-row input{font-size:.78rem;color:#aaa;cursor:pointer}
+    .copy-row button{padding:6px 12px;border-radius:6px;border:none;background:#e94560;color:#fff;cursor:pointer;font-size:.78rem;white-space:nowrap}
+
+    /* ── Chat ── */
+    #chat-panel{align-items:stretch;flex-direction:column}
+    #chat-header{background:#16213e;padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #0f3460}
+    #chat-header .grp-name{font-weight:600;color:#e94560;font-size:.85rem}
+    #chat-header .grp-id{font-size:.72rem;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
     #typing-indicator{font-size:.78rem;color:#aaa;margin-left:auto;min-width:160px;text-align:right;height:18px}
     #messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
-    .msg{max-width:70%;padding:10px 14px;border-radius:12px;font-size:.9rem;line-height:1.4}
-    .msg.mine{align-self:flex-end;background:#e94560;color:white;border-bottom-right-radius:4px}
-    .msg.theirs{align-self:flex-start;background:#0f3460;border-bottom-left-radius:4px}
-    .msg .meta{font-size:.7rem;opacity:.7;margin-bottom:2px}
-    .msg.system{align-self:center;background:transparent;color:#888;font-size:.75rem;font-style:italic}
-    #input-area{background:#16213e;padding:12px 16px;display:flex;gap:10px;border-top:1px solid #0f3460}
+    .bubble{max-width:72%;padding:10px 14px;border-radius:12px;font-size:.9rem;line-height:1.4}
+    .bubble.mine{align-self:flex-end;background:#e94560;color:#fff;border-bottom-right-radius:4px}
+    .bubble.theirs{align-self:flex-start;background:#0f3460;border-bottom-left-radius:4px}
+    .bubble .meta{font-size:.7rem;opacity:.7;margin-bottom:3px}
+    .bubble.system{align-self:center;background:transparent;color:#555;font-size:.75rem;font-style:italic}
+    #input-row{background:#16213e;padding:12px 16px;display:flex;gap:10px;border-top:1px solid #0f3460}
     #msg-input{flex:1;padding:10px 12px;border-radius:8px;border:1px solid #0f3460;background:#0f3460;color:#e0e0e0;font-size:.9rem}
-    #btn-send{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;background:#e94560;color:white}
-    .dot{display:inline-block;width:6px;height:6px;background:#aaa;border-radius:50%;animation:bounce 1.2s infinite;margin:0 1px}
+    #msg-input:focus{outline:none;border-color:#e94560}
+    #btn-send{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;background:#e94560;color:#fff}
+
+    /* ── Typing dots ── */
+    .dot{display:inline-block;width:5px;height:5px;background:#aaa;border-radius:50%;animation:bounce 1.2s infinite;margin:0 1px}
     .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
-    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
-    .copy-btn{background:#0f3460;border:none;color:#e94560;cursor:pointer;font-size:.75rem;padding:2px 8px;border-radius:4px;margin-left:6px}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+
+    /* ── Spinner ── */
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff3;border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
+
 <header>
   <h1>⚡ Stream-Chat</h1>
   <div id="status-bar">Desconectado</div>
 </header>
 
-<div id="login-panel">
-  <div id="login-form">
-    <h2>Entrar al chat</h2>
+<!-- ══ PANEL 1: Autenticación ══ -->
+<div id="auth-panel">
+  <div class="card">
+    <h2>Bienvenido</h2>
+    <p class="sub">Inicia sesión o crea una cuenta nueva</p>
 
-    <div class="tab-row">
-      <button class="tab active" onclick="setMode('create')" id="tab-create">Crear grupo</button>
-      <button class="tab" onclick="setMode('join')" id="tab-join">Unirse a grupo</button>
+    <div class="tabs">
+      <button class="tab active" id="tab-login"    onclick="switchAuth('login')">Iniciar sesión</button>
+      <button class="tab"        id="tab-register" onclick="switchAuth('register')">Registrarse</button>
     </div>
 
-    <input id="inp-username" placeholder="Usuario" autocomplete="off"/>
-    <input id="inp-password" type="password" placeholder="Contraseña"/>
+    <input id="auth-username" placeholder="Usuario" autocomplete="off"/>
+    <input id="auth-password" type="password" placeholder="Contraseña (mín. 6 caracteres)"/>
+    <div id="auth-email-row" style="display:none">
+      <input id="auth-email" placeholder="Correo electrónico"/>
+    </div>
+
+    <button class="btn btn-primary" id="btn-auth" onclick="doAuth()">Iniciar sesión</button>
+    <div id="auth-msg" class="msg-box"></div>
+  </div>
+</div>
+
+<!-- ══ PANEL 2: Grupo ══ -->
+<div id="group-panel">
+  <div class="card">
+    <h2 id="grp-panel-title">¡Hola, <span id="grp-username"></span>!</h2>
+    <p class="sub">Crea un grupo o únete con un ID</p>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-create" onclick="switchGroup('create')">Crear grupo</button>
+      <button class="tab"        id="tab-join"   onclick="switchGroup('join')">Unirse</button>
+    </div>
 
     <div id="create-fields">
-      <input id="inp-group-name" placeholder="Nombre del grupo (ej: GrupoA)"/>
+      <input id="grp-name" placeholder="Nombre del grupo (ej: GrupoA)"/>
     </div>
-
     <div id="join-fields" style="display:none">
-      <input id="inp-group-id" placeholder="ID del grupo (UUID)"/>
+      <input id="grp-id-input" placeholder="Pega el ID del grupo (UUID)"/>
     </div>
 
-    <button class="primary" id="btn-connect">Conectar</button>
-    <div id="login-error"></div>
+    <button class="btn btn-primary" id="btn-group" onclick="doGroup()">Continuar</button>
+    <div id="group-msg" class="msg-box"></div>
 
-    <div id="group-id-box">
-      <b>ID del grupo (compártelo):</b><br/>
-      <span id="lbl-group-id-share"></span>
-      <button class="copy-btn" onclick="copyGroupId()">Copiar</button>
+    <!-- Aparece tras crear el grupo -->
+    <div id="group-info">
+      <b>✅ Grupo creado — comparte este ID:</b>
+      <div class="copy-row">
+        <input id="group-id-display" readonly onclick="this.select()"/>
+        <button onclick="copyId()">Copiar</button>
+      </div>
+      <div style="margin-top:8px;font-size:.78rem;color:#aaa">
+        Los demás miembros deben usar este ID para unirse.
+        El creador ya está dentro — pulsa <b style="color:#e94560">Entrar al chat</b> cuando quieras.
+      </div>
+      <button class="btn btn-primary" style="margin-top:10px" onclick="openChat()">Entrar al chat →</button>
     </div>
   </div>
 </div>
 
+<!-- ══ PANEL 3: Chat ══ -->
 <div id="chat-panel">
   <div id="chat-header">
-    <span class="grp" id="lbl-group">Grupo</span>
+    <div>
+      <div class="grp-name" id="chat-grp-name">Grupo</div>
+      <div class="grp-id"   id="chat-grp-id"></div>
+    </div>
     <div id="typing-indicator"></div>
   </div>
   <div id="messages"></div>
-  <div id="input-area">
-    <input id="msg-input" placeholder="Escribe un mensaje… (Enter para enviar)" autocomplete="off"/>
-    <button id="btn-send">Enviar</button>
+  <div id="input-row">
+    <input id="msg-input" placeholder="Escribe un mensaje… (Enter para enviar)"/>
+    <button id="btn-send" onclick="sendMsg()">Enviar</button>
   </div>
 </div>
 
 <script>
+/* ═══════════════════════════════════════════
+   Estado global
+═══════════════════════════════════════════ */
 const BASE = window.location.origin;
-let token = null, username = null, groupId = null, stompClient = null;
-let mode = 'create', typingTimeout = null, lastTypingSent = 0;
+let token = null, username = null, userId = null;
+let groupId = null, groupName = null;
+let stomp = null;
+let authMode = 'login', groupMode = 'create';
+let typingTimeout = null, lastTyping = 0;
 const TYPING_THROTTLE = 2000;
 const typingUsers = new Map();
 
 const $ = id => document.getElementById(id);
 
-function setMode(m) {
-  mode = m;
-  $('tab-create').className = 'tab' + (m==='create'?' active':'');
-  $('tab-join').className   = 'tab' + (m==='join'  ?' active':'');
-  $('create-fields').style.display = m==='create'?'':'none';
-  $('join-fields').style.display   = m==='join'  ?'':'none';
+/* ═══════════════════════════════════════════
+   Helpers UI
+═══════════════════════════════════════════ */
+function setStatus(t) { $('status-bar').textContent = t; }
+
+function showMsg(boxId, text, type='error') {
+  const el = $(boxId);
+  el.textContent = text;
+  el.className = 'msg-box ' + type;
+}
+function hideMsg(boxId) {
+  const el = $(boxId);
+  el.className = 'msg-box';
+  el.textContent = '';
 }
 
-function copyGroupId() {
-  navigator.clipboard.writeText($('lbl-group-id-share').textContent);
-  $('copy-btn') && ($('copy-btn').textContent = '¡Copiado!');
-  setTimeout(()=>{ const b=document.querySelector('.copy-btn'); if(b) b.textContent='Copiar'; },1500);
+function setLoading(btnId, loading, label) {
+  const btn = $(btnId);
+  btn.disabled = loading;
+  btn.innerHTML = loading ? `<span class="spinner"></span>${label}` : label;
 }
 
-async function connect() {
-  const user = $('inp-username').value.trim();
-  const pass = $('inp-password').value.trim();
-  $('login-error').textContent = '';
-
-  if (!user || !pass) { $('login-error').textContent='Usuario y contraseña requeridos.'; return; }
-
-  // 1. Login o registro automático
-  let res = await fetch(`${BASE}/api/v1/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
-  if (!res.ok) {
-    const reg = await fetch(`${BASE}/api/v1/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass,email:user+'@chat.local'})});
-    if (!reg.ok) { $('login-error').textContent='Error al registrar.'; return; }
-    res = await fetch(`${BASE}/api/v1/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
-  }
-  if (!res.ok) { $('login-error').textContent='Credenciales incorrectas.'; return; }
-  const auth = await res.json();
-  token = auth.token; username = user;
-
-  // 2. Crear o unirse al grupo
-  if (mode === 'create') {
-    const name = $('inp-group-name').value.trim() || 'Grupo-'+Date.now();
-    const gr = await fetch(`${BASE}/api/v1/groups`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({name})});
-    if (!gr.ok) { $('login-error').textContent='Error al crear grupo.'; return; }
-    const g = await gr.json();
-    groupId = g.id;
-    // Mostrar ID para compartir
-    $('lbl-group-id-share').textContent = groupId;
-    $('group-id-box').style.display = 'block';
-    $('btn-connect').textContent = 'Entrando…';
-    setTimeout(openChat, 1200);
-  } else {
-    const gid = $('inp-group-id').value.trim();
-    if (!gid) { $('login-error').textContent='Pega el ID del grupo.'; return; }
-    // Intentar unirse como miembro
-    groupId = gid;
-    // addMember con requesterId=userId (el propio usuario se une)
-    const me = parseJwtUserId(token);
-    if (me) {
-      await fetch(`${BASE}/api/v1/groups/${groupId}/members`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({requesterId:me,targetUserId:me})}).catch(()=>{});
-    }
-    openChat();
-  }
+function switchAuth(mode) {
+  authMode = mode;
+  $('tab-login').className    = 'tab' + (mode==='login'   ?' active':'');
+  $('tab-register').className = 'tab' + (mode==='register'?' active':'');
+  $('auth-email-row').style.display = mode==='register' ? '' : 'none';
+  $('btn-auth').textContent = mode==='login' ? 'Iniciar sesión' : 'Crear cuenta';
+  hideMsg('auth-msg');
 }
 
-// Decodifica el userId del JWT (payload base64)
-function parseJwtUserId(jwt) {
+function switchGroup(mode) {
+  groupMode = mode;
+  $('tab-create').className = 'tab' + (mode==='create'?' active':'');
+  $('tab-join').className   = 'tab' + (mode==='join'  ?' active':'');
+  $('create-fields').style.display = mode==='create' ? '' : 'none';
+  $('join-fields').style.display   = mode==='join'   ? '' : 'none';
+  $('group-info').style.display = 'none';
+  hideMsg('group-msg');
+}
+
+/* ═══════════════════════════════════════════
+   Panel 1: Autenticación
+═══════════════════════════════════════════ */
+async function doAuth() {
+  const user = $('auth-username').value.trim();
+  const pass = $('auth-password').value.trim();
+  const email = $('auth-email').value.trim();
+  hideMsg('auth-msg');
+
+  if (!user) { showMsg('auth-msg','Escribe un nombre de usuario.'); return; }
+  if (pass.length < 6) { showMsg('auth-msg','La contraseña debe tener al menos 6 caracteres.'); return; }
+  if (authMode==='register' && !email) { showMsg('auth-msg','Escribe un correo electrónico.'); return; }
+
+  setLoading('btn-auth', true, authMode==='login' ? 'Iniciando sesión…' : 'Creando cuenta…');
+
   try {
-    const payload = JSON.parse(atob(jwt.split('.')[1]));
-    return payload.sub || payload.userId || null;
-  } catch { return null; }
+    if (authMode === 'register') {
+      const r = await api('/api/v1/auth/register','POST',{username:user,password:pass,email});
+      if (!r.ok) {
+        const err = await r.json().catch(()=>({}));
+        showMsg('auth-msg', err.message || 'Error al registrar. Prueba con otro usuario o correo.');
+        return;
+      }
+      showMsg('auth-msg','¡Cuenta creada! Iniciando sesión…','success');
+      await sleep(800);
+    }
+
+    const r = await api('/api/v1/auth/login','POST',{username:user,password:pass});
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({}));
+      showMsg('auth-msg', err.message || 'Usuario o contraseña incorrectos.');
+      return;
+    }
+    const data = await r.json();
+    token    = data.token;
+    username = data.username;
+    userId   = data.userId;
+
+    // Pasar al panel de grupo
+    $('auth-panel').style.display  = 'none';
+    $('group-panel').style.display = 'flex';
+    $('grp-username').textContent  = username;
+
+  } catch(e) {
+    showMsg('auth-msg','Error de conexión con el servidor.');
+  } finally {
+    setLoading('btn-auth', false, authMode==='login' ? 'Iniciar sesión' : 'Crear cuenta');
+  }
 }
 
+/* ═══════════════════════════════════════════
+   Panel 2: Grupo
+═══════════════════════════════════════════ */
+async function doGroup() {
+  hideMsg('group-msg');
+  $('group-info').style.display = 'none';
+
+  // Evitar doble submit
+  if ($('btn-group').disabled) return;
+
+  if (groupMode === 'create') {
+    const name = $('grp-name').value.trim();
+    if (!name) { showMsg('group-msg','Escribe un nombre para el grupo.'); return; }
+
+    setLoading('btn-group', true, 'Creando grupo…');
+    try {
+      const r = await api('/api/v1/groups','POST',{name});
+      if (!r.ok) {
+        showMsg('group-msg','Error al crear el grupo. Intenta de nuevo.');
+        return;
+      }
+      const g = await r.json();
+      groupId   = g.id;
+      groupName = g.name;
+
+      // Mostrar ID para compartir
+      $('group-id-display').value   = groupId;
+      $('group-info').style.display = 'block';
+      showMsg('group-msg','Grupo creado. Comparte el ID con tus compañeros.','success');
+
+    } catch(e) {
+      showMsg('group-msg','Error de conexión.');
+    } finally {
+      setLoading('btn-group', false, 'Continuar');
+    }
+
+  } else {
+    // Unirse a grupo existente
+    const gid = $('grp-id-input').value.trim();
+    if (!gid) { showMsg('group-msg','Pega el ID del grupo.'); return; }
+    if (!isUUID(gid)) { showMsg('group-msg','El ID no tiene formato UUID válido (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).'); return; }
+
+    setLoading('btn-group', true, 'Uniéndose…');
+    try {
+      // Agregar al usuario como miembro (el token del requestor es suficiente)
+      const r = await api(`/api/v1/groups/${gid}/members`,'POST',{targetUserId: userId});
+      // 200 OK = unido, 409/500 = ya era miembro o no existe
+      if (!r.ok && r.status !== 409) {
+        const err = await r.json().catch(()=>({}));
+        showMsg('group-msg', err.message || 'No se pudo unir al grupo. Verifica el ID.');
+        return;
+      }
+      groupId   = gid;
+      groupName = 'Grupo ' + gid.substring(0,8) + '…';
+      openChat();
+    } catch(e) {
+      showMsg('group-msg','Error de conexión.');
+    } finally {
+      setLoading('btn-group', false, 'Continuar');
+    }
+  }
+}
+
+function copyId() {
+  navigator.clipboard.writeText($('group-id-display').value)
+    .then(() => {
+      const btn = document.querySelector('.copy-row button');
+      btn.textContent = '¡Copiado!';
+      setTimeout(()=>{ btn.textContent='Copiar'; }, 1500);
+    });
+}
+
+/* ═══════════════════════════════════════════
+   Panel 3: Chat
+═══════════════════════════════════════════ */
 function openChat() {
-  $('login-panel').style.display = 'none';
+  $('group-panel').style.display = 'none';
   $('chat-panel').style.display  = 'flex';
-  $('lbl-group').textContent = groupId;
+  $('chat-grp-name').textContent = groupName || 'Grupo';
+  $('chat-grp-id').textContent   = groupId;
   connectWS();
 }
 
 function connectWS() {
   setStatus('Conectando…');
-  const sock = new SockJS(BASE+'/ws');
-  stompClient = Stomp.over(sock);
-  stompClient.debug = null;
-  stompClient.connect({'Authorization':'Bearer '+token}, () => {
-    setStatus('Conectado ✓');
-    addMsg('','Conectado — Grupo: '+groupId,false,true);
-    stompClient.subscribe('/topic/groups/'+groupId, msg => handleEvent(JSON.parse(msg.body)));
-  }, err => {
-    setStatus('Error WS');
-    addMsg('','Error: '+err,false,true);
-  });
+  const sock = new SockJS(BASE + '/ws');
+  stomp = Stomp.over(sock);
+  stomp.debug = null;
+  stomp.reconnect_delay = 3000;
+
+  stomp.connect(
+    { Authorization: 'Bearer ' + token },
+    frame => {
+      setStatus('Conectado ✓  |  ' + username);
+      addBubble(null, 'Conectado al grupo', true);
+      stomp.subscribe('/topic/groups/' + groupId, msg => {
+        handleEvent(JSON.parse(msg.body));
+      });
+      // Cargar historial de mensajes al conectar
+      loadHistory();
+    },
+    err => {
+      setStatus('Reconectando…');
+      setTimeout(connectWS, 3000);
+    }
+  );
 }
 
 function handleEvent(ev) {
-  if (!ev||!ev.type) return;
-  if (ev.type==='MESSAGE_NEW') {
+  if (!ev || !ev.type) return;
+
+  if (ev.type === 'MESSAGE_NEW') {
     const p = ev.payload;
-    const mine = p.senderUsername===username||p.senderId===username;
-    addMsg(p.senderUsername||'Usuario', p.content, mine);
-  } else if (ev.type==='TYPING_UPDATE') {
+    const mine = p.senderId === userId;
+    const sender = mine ? 'Tú' : (p.senderUsername || 'Usuario');
+    addBubble(sender, p.content, false, mine);
+
+  } else if (ev.type === 'TYPING_UPDATE') {
     const p = ev.payload;
-    if (p.userId===username) return;
-    typingUsers.set(p.userId, p.typing);
-    if (!p.typing) typingUsers.delete(p.userId);
-    updateTyping();
+    if (p.userId === userId) return; // ignorar el propio
+    if (p.typing) {
+      typingUsers.set(p.userId, true);
+    } else {
+      typingUsers.delete(p.userId);
+    }
+    renderTyping();
   }
 }
 
-function addMsg(user, text, mine, system=false) {
+function addBubble(user, text, system=false, mine=false) {
   const d = document.createElement('div');
-  d.className = 'msg'+(system?' system':mine?' mine':' theirs');
-  d.innerHTML = system ? esc(text) : `<div class="meta">${esc(user)}</div>${esc(text)}`;
+  if (system) {
+    d.className = 'bubble system';
+    d.textContent = text;
+  } else {
+    d.className = 'bubble ' + (mine ? 'mine' : 'theirs');
+    d.innerHTML = `<div class="meta">${esc(user)}</div>${esc(text)}`;
+  }
   $('messages').appendChild(d);
   $('messages').scrollTop = 9999;
 }
 
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function updateTyping() {
-  const users = [...typingUsers.keys()].filter(k=>typingUsers.get(k));
+function renderTyping() {
+  const users = [...typingUsers.keys()];
   const el = $('typing-indicator');
-  if (!users.length) { el.innerHTML=''; return; }
-  const names = users.length===1 ? esc(users[0])+' está escribiendo' : users.length+' personas escribiendo';
-  el.innerHTML = `${names} <span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
+  if (!users.length) { el.innerHTML = ''; return; }
+  const label = users.length === 1
+    ? esc(users[0]) + ' está escribiendo'
+    : users.length + ' personas escribiendo';
+  el.innerHTML = `${label} <span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
 }
 
-function sendMessage() {
-  const c = $('msg-input').value.trim();
-  if (!c||!stompClient) return;
-  stompClient.send('/app/groups/'+groupId+'/messages',{},JSON.stringify({content:c}));
-  $('msg-input').value='';
+function sendMsg() {
+  const content = $('msg-input').value.trim();
+  if (!content || !stomp) return;
+  stomp.send('/app/groups/' + groupId + '/messages', {}, JSON.stringify({ content }));
+  $('msg-input').value = '';
   stopTyping();
 }
 
 function startTyping() {
-  if (!stompClient) return;
+  if (!stomp) return;
   const now = Date.now();
-  if (now-lastTypingSent < TYPING_THROTTLE) return;
-  lastTypingSent = now;
-  stompClient.send('/app/groups/'+groupId+'/typing',{},JSON.stringify({eventType:'TYPING_STARTED'}));
+  if (now - lastTyping < TYPING_THROTTLE) return;
+  lastTyping = now;
+  stomp.send('/app/groups/' + groupId + '/typing', {}, JSON.stringify({ eventType: 'TYPING_STARTED' }));
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(stopTyping, 3000);
 }
 
 function stopTyping() {
   clearTimeout(typingTimeout);
-  if (!stompClient) return;
-  stompClient.send('/app/groups/'+groupId+'/typing',{},JSON.stringify({eventType:'TYPING_STOPPED'}));
+  if (!stomp) return;
+  stomp.send('/app/groups/' + groupId + '/typing', {}, JSON.stringify({ eventType: 'TYPING_STOPPED' }));
 }
 
-function setStatus(t){ $('status-bar').textContent=t; }
+/* ═══════════════════════════════════════════
+   Historial
+═══════════════════════════════════════════ */
+async function loadHistory() {
+  try {
+    const r = await api(`/api/v1/groups/${groupId}/messages?page=0&size=50`);
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.content && data.content.length > 0) {
+      addBubble(null, `— ${data.content.length} mensaje(s) anteriores —`, true);
+      data.content.forEach(msg => {
+        const mine = msg.senderId === userId;
+        addBubble(mine ? 'Tú' : (msg.senderUsername || 'Usuario'), msg.content, false, mine);
+      });
+    }
+  } catch(e) {
+    // Si falla el historial no es crítico
+  }
+}
 
-// Eventos
-$('btn-connect').addEventListener('click', connect);
-$('btn-send').addEventListener('click', sendMessage);
-$('msg-input').addEventListener('keydown', e=>{
-  if (e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
+/* ═══════════════════════════════════════════
+   Utilidades
+═══════════════════════════════════════════ */
+function api(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: 'Bearer ' + token } : {})
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(BASE + path, opts);
+}
+
+function isUUID(s) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ═══════════════════════════════════════════
+   Event listeners
+═══════════════════════════════════════════ */
+$('msg-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
   else startTyping();
 });
-['inp-username','inp-password','inp-group-name','inp-group-id'].forEach(id=>{
-  $(id)&&$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') connect(); });
+
+['auth-username','auth-password','auth-email'].forEach(id => {
+  $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doAuth(); });
+});
+
+// Enter en campos del panel de grupo llama doGroup (no doAuth)
+['grp-name','grp-id-input'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') doGroup(); });
 });
 </script>
 </body>

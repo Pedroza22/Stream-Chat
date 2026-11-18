@@ -8,7 +8,6 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.security.Principal;
 import java.util.UUID;
@@ -26,7 +25,7 @@ public class ChatWebSocketController {
     public void sendMessage(@DestinationVariable UUID groupId,
                             SendMessageRequest payload,
                             Principal principal) {
-        AuthenticatedUser user = (AuthenticatedUser) principal;
+        AuthenticatedUser user = extractAuthenticatedUser(principal);
         facade.sendMessage(new SendMessageCommand(user.userId(), groupId, payload.content()));
     }
 
