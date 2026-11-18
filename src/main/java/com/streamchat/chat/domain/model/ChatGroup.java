@@ -54,6 +54,16 @@ public class ChatGroup {
         }
     }
 
+    public void removeMember(UserId requesterId, UserId targetUserId) {
+        if (!isMember(requesterId)) {
+            throw new NotGroupMemberException(requesterId.value(), id);
+        }
+        if (targetUserId.value().equals(createdBy)) {
+            throw new IllegalArgumentException("The group creator cannot be removed");
+        }
+        members.removeIf(m -> m.getUserId().equals(targetUserId.value()));
+    }
+
     public boolean isMember(UserId userId) {
         return members.stream().anyMatch(m -> m.getUserId().equals(userId.value()));
     }

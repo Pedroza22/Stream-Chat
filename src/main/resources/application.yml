@@ -48,7 +48,8 @@ spring:
       enable-auto-commit: false          # commit manual después de procesar
       properties:
         spring.json.trusted.packages: "com.streamchat.contracts"
-        spring.json.add.type.headers: false
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.streamchat.contracts.UserActivityEvent
         max.poll.records: 50
 
 app:

@@ -6,6 +6,7 @@ import com.streamchat.chat.application.dto.request.SendMessageRequest;
 import com.streamchat.chat.infrastructure.security.AuthenticatedUser;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -25,14 +26,14 @@ public class ChatWebSocketController {
     public void sendMessage(@DestinationVariable UUID groupId,
                             SendMessageRequest payload,
                             Principal principal) {
-        UUID userId = extractUserId(principal);
-        facade.sendMessage(new SendMessageCommand(userId, groupId, payload.content()));
+        AuthenticatedUser user = (AuthenticatedUser) principal;
+        facade.sendMessage(new SendMessageCommand(user.userId(), groupId, payload.content()));
     }
 
-    private UUID extractUserId(Principal principal) {
+    private AuthenticatedUser extractAuthenticatedUser(Principal principal) {
         if (principal instanceof UsernamePasswordAuthenticationToken token
                 && token.getPrincipal() instanceof AuthenticatedUser user) {
-            return user.userId();
+            return user;
         }
         throw new IllegalStateException("Usuario no autenticado en el canal WebSocket");
     }
