@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/V4__create_messages.sql
   - include:
       file: db/changelog/V5__create_outbox.sql
+  - include:
+      file: db/changelog/V6__create_processed_events.sql
