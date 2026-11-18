@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,5 +47,15 @@ public class GroupController {
         UUID requesterId = principal.userId();
         facade.addMember(new AddMemberCommand(requesterId, groupId, req.targetUserId()));
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{groupId}/members/{targetUserId}")
+    public ResponseEntity<Void> removeMember(@PathVariable UUID groupId,
+                                             @PathVariable UUID targetUserId) {
+        AuthenticatedUser principal = (AuthenticatedUser) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        UUID requesterId = principal.userId();
+        facade.removeMember(requesterId, groupId, targetUserId);
+        return ResponseEntity.noContent().build();
     }
 }

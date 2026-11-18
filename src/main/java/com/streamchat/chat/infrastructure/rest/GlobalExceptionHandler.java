@@ -64,9 +64,15 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(403, "Forbidden", ex.getMessage(), Instant.now()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(400, "Bad Request", ex.getMessage(), Instant.now()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(500, "Internal Server Error", ex.getMessage(), Instant.now()));
+                .body(new ErrorResponse(500, "Internal Server Error", "An unexpected error occurred", Instant.now()));
     }
 }
