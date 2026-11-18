@@ -28,11 +28,17 @@ public class AddMemberUseCaseImpl implements AddMemberUseCase {
     public void execute(AddMemberCommand cmd) {
         var group = groupRepository.findById(GroupId.of(cmd.groupId()))
                 .orElseThrow(() -> new GroupNotFoundException(cmd.groupId()));
-        boolean requesterIsMember = group.getMembers().stream()
-                .anyMatch(m -> m.getUserId().equals(cmd.requesterId()));
-        if (!requesterIsMember) {
-            throw new NotGroupMemberException(cmd.requesterId(), cmd.groupId());
+
+        // Auto-unión: el usuario se agrega a sí mismo — permitido sin ser miembro previo
+        boolean isSelfJoin = cmd.requesterId().equals(cmd.targetUserId());
+        if (!isSelfJoin) {
+            boolean requesterIsMember = group.getMembers().stream()
+                    .anyMatch(m -> m.getUserId().equals(cmd.requesterId()));
+            if (!requesterIsMember) {
+                throw new NotGroupMemberException(cmd.requesterId(), cmd.groupId());
+            }
         }
+
         group.addMember(UserId.of(cmd.targetUserId()), clock);
         groupRepository.save(group);
     }

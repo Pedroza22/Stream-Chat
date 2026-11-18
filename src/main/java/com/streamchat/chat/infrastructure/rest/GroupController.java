@@ -5,6 +5,7 @@ import com.streamchat.chat.application.dto.AddMemberCommand;
 import com.streamchat.chat.application.dto.CreateGroupCommand;
 import com.streamchat.chat.application.dto.request.AddMemberRequest;
 import com.streamchat.chat.application.dto.request.CreateGroupRequest;
+import com.streamchat.chat.application.dto.response.GroupResponse;
 import com.streamchat.chat.domain.model.ChatGroup;
 import com.streamchat.chat.infrastructure.security.AuthenticatedUser;
 import jakarta.validation.Valid;
@@ -31,12 +32,13 @@ public class GroupController {
     }
 
     @PostMapping
-    public ResponseEntity<ChatGroup> createGroup(@Valid @RequestBody CreateGroupRequest req) {
+    public ResponseEntity<GroupResponse> createGroup(@Valid @RequestBody CreateGroupRequest req) {
         AuthenticatedUser principal = (AuthenticatedUser) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         UUID userId = principal.userId();
         ChatGroup group = facade.createGroup(new CreateGroupCommand(userId, req.name()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(group);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new GroupResponse(group.getId(), group.getName(), group.getCreatedBy(), group.getCreatedAt()));
     }
 
     @PostMapping("/{groupId}/members")
