@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -29,12 +30,47 @@ public class ProcessedEvent {
         return pe;
     }
 
-    public ProcessedEventId getId() { return id; }
-    public Instant getProcessedAt() { return processedAt; }
+    public ProcessedEventId getId()       { return id; }
+    public Instant getProcessedAt()       { return processedAt; }
 
+    /**
+     * Clave compuesta: (event_id, consumer).
+     *
+     * Usamos clase normal (no record) porque Hibernate necesita reflexión mutable
+     * para inyectar valores en campos de un @Embeddable. Los records tienen campos
+     * final que no admiten inyección por reflexión.
+     */
     @Embeddable
-    public record ProcessedEventId(
-            @Column(name = "event_id") UUID eventId,
-            @Column(name = "consumer", length = 100) String consumer
-    ) implements Serializable {}
+    public static class ProcessedEventId implements Serializable {
+
+        @Column(name = "event_id", nullable = false)
+        private UUID eventId;
+
+        @Column(name = "consumer", length = 100, nullable = false)
+        private String consumer;
+
+        // Constructor vacío requerido por JPA
+        protected ProcessedEventId() {}
+
+        public ProcessedEventId(UUID eventId, String consumer) {
+            this.eventId  = eventId;
+            this.consumer = consumer;
+        }
+
+        public UUID getEventId()   { return eventId; }
+        public String getConsumer() { return consumer; }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ProcessedEventId that)) return false;
+            return Objects.equals(eventId, that.eventId)
+                    && Objects.equals(consumer, that.consumer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(eventId, consumer);
+        }
+    }
 }
