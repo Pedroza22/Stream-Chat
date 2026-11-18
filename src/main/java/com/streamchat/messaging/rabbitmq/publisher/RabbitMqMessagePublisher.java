@@ -1,5 +1,6 @@
 package com.streamchat.messaging.rabbitmq.publisher;
 
+import com.streamchat.chat.application.port.out.MessageEventPublisher;
 import com.streamchat.contracts.MessageCreatedEvent;
 import com.streamchat.messaging.rabbitmq.config.RabbitMqProperties;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * para que el relay marque el evento como FAILED y reintente más tarde.
  */
 @Component
-public class RabbitMqMessagePublisher {
+public class RabbitMqMessagePublisher implements MessageEventPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitMqMessagePublisher.class);
     private static final long CONFIRM_TIMEOUT_MS = 5_000;
