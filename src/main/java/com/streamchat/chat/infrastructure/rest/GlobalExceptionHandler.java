@@ -6,6 +6,8 @@ import com.streamchat.chat.domain.exception.DuplicateUsernameException;
 import com.streamchat.chat.domain.exception.GroupNotFoundException;
 import com.streamchat.chat.domain.exception.NotGroupMemberException;
 import com.streamchat.chat.domain.exception.UserNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(NotGroupMemberException.class)
     public ResponseEntity<ErrorResponse> handleNotGroupMember(NotGroupMemberException ex) {
@@ -66,7 +70,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        log.error("Error inesperado no controlado", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(500, "Internal Server Error", ex.getMessage(), Instant.now()));
+                .body(new ErrorResponse(500, "Internal Server Error", "An unexpected error occurred", Instant.now()));
     }
 }

@@ -24,6 +24,20 @@ public class WebSocketSessionRegistry {
         }
     }
 
+    /**
+     * Elimina una sesión de todos los grupos a los que pertenecía.
+     *
+     * Se invoca al desconectar el WebSocket, donde el groupId ya no está
+     * disponible (la suscripción al tópico del grupo ocurrió antes). Recorre
+     * todos los grupos y saca la sesión de cada uno, dejando las entradas
+     * vacías para que el GC limpie el conjunto.
+     */
+    public void unregisterSession(String sessionId) {
+        for (CopyOnWriteArraySet<String> sessions : groupSessions.values()) {
+            sessions.remove(sessionId);
+        }
+    }
+
     public Set<String> getSessionsForGroup(UUID groupId) {
         return groupSessions.getOrDefault(groupId, new CopyOnWriteArraySet<>());
     }
