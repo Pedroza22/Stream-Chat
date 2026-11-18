@@ -78,8 +78,45 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
       interval: 15s
-      timeout: 10s
-      retries: 5
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamchat-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-streamchat}
+      DB_USERNAME: ${POSTGRES_USER:-streamchat}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-streamchat}
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en el archivo .env}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER:-streamchat}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-streamchat}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST:-streamchat}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      PRESENCE_TYPING_TTL_MS: ${PRESENCE_TYPING_TTL_MS:-5000}
+      PRESENCE_EXPIRATION_SCAN_MS: ${PRESENCE_EXPIRATION_SCAN_MS:-2000}
+    ports:
+      - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
     restart: unless-stopped
 
 volumes:

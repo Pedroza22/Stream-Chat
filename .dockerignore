@@ -1,0 +1,10 @@
+target/
+.git/
+.gitignore
+.env
+.idea/
+.vscode/
+*.iml
+*.log
+README.md
+Plan_Trabajo_Stream_Chat_3_Programadores_v2.md

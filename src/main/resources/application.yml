@@ -59,6 +59,9 @@ app:
     exchange: streamchat.events          # exchange principal tipo topic
     outbox-relay-delay-ms: 5000          # intervalo del relay de outbox
     activity-topic: user-activity        # topic de Kafka para eventos de typing
+  presence:
+    typing-ttl-ms: ${PRESENCE_TYPING_TTL_MS:5000}             # expiración del estado de escritura
+    expiration-scan-ms: ${PRESENCE_EXPIRATION_SCAN_MS:2000}   # intervalo del barrido de expiración
 
 server:
   port: 8080
