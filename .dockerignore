@@ -8,3 +8,6 @@ target/
 *.log
 README.md
 Plan_Trabajo_Stream_Chat_3_Programadores_v2.md
+.agents/
+docs/
+infra/

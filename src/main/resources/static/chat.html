@@ -1,0 +1,264 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stream-Chat</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;height:100vh;display:flex;flex-direction:column}
+    header{background:#16213e;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #0f3460}
+    header h1{font-size:1.1rem;color:#e94560}
+    #status-bar{font-size:.75rem;color:#888;margin-left:auto}
+    #login-panel{flex:1;display:flex;align-items:center;justify-content:center}
+    #login-form{background:#16213e;padding:32px;border-radius:12px;width:340px;display:flex;flex-direction:column;gap:10px}
+    #login-form h2{color:#e94560;text-align:center;margin-bottom:4px}
+    .tab-row{display:flex;gap:6px}
+    .tab{flex:1;padding:8px;border-radius:6px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;background:#0f3460;color:#aaa;transition:all .2s}
+    .tab.active{background:#e94560;color:#fff}
+    input{padding:10px 12px;border-radius:8px;border:1px solid #0f3460;background:#0f3460;color:#e0e0e0;font-size:.9rem;width:100%}
+    input::placeholder{color:#666}
+    button.primary{padding:10px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;background:#e94560;color:white;width:100%;transition:opacity .2s}
+    button.primary:hover{opacity:.85}
+    #login-error{color:#e94560;font-size:.8rem;text-align:center;min-height:16px}
+    #group-id-box{background:#0f3460;border-radius:8px;padding:10px 12px;font-size:.8rem;display:none;word-break:break-all}
+    #group-id-box b{color:#e94560}
+    #chat-panel{flex:1;display:none;flex-direction:column}
+    #chat-header{background:#16213e;padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #0f3460;flex-wrap:wrap}
+    #chat-header .grp{font-weight:600;color:#e94560;font-size:.85rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #typing-indicator{font-size:.78rem;color:#aaa;margin-left:auto;min-width:160px;text-align:right;height:18px}
+    #messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+    .msg{max-width:70%;padding:10px 14px;border-radius:12px;font-size:.9rem;line-height:1.4}
+    .msg.mine{align-self:flex-end;background:#e94560;color:white;border-bottom-right-radius:4px}
+    .msg.theirs{align-self:flex-start;background:#0f3460;border-bottom-left-radius:4px}
+    .msg .meta{font-size:.7rem;opacity:.7;margin-bottom:2px}
+    .msg.system{align-self:center;background:transparent;color:#888;font-size:.75rem;font-style:italic}
+    #input-area{background:#16213e;padding:12px 16px;display:flex;gap:10px;border-top:1px solid #0f3460}
+    #msg-input{flex:1;padding:10px 12px;border-radius:8px;border:1px solid #0f3460;background:#0f3460;color:#e0e0e0;font-size:.9rem}
+    #btn-send{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;background:#e94560;color:white}
+    .dot{display:inline-block;width:6px;height:6px;background:#aaa;border-radius:50%;animation:bounce 1.2s infinite;margin:0 1px}
+    .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+    .copy-btn{background:#0f3460;border:none;color:#e94560;cursor:pointer;font-size:.75rem;padding:2px 8px;border-radius:4px;margin-left:6px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>⚡ Stream-Chat</h1>
+  <div id="status-bar">Desconectado</div>
+</header>
+
+<div id="login-panel">
+  <div id="login-form">
+    <h2>Entrar al chat</h2>
+
+    <div class="tab-row">
+      <button class="tab active" onclick="setMode('create')" id="tab-create">Crear grupo</button>
+      <button class="tab" onclick="setMode('join')" id="tab-join">Unirse a grupo</button>
+    </div>
+
+    <input id="inp-username" placeholder="Usuario" autocomplete="off"/>
+    <input id="inp-password" type="password" placeholder="Contraseña"/>
+
+    <div id="create-fields">
+      <input id="inp-group-name" placeholder="Nombre del grupo (ej: GrupoA)"/>
+    </div>
+
+    <div id="join-fields" style="display:none">
+      <input id="inp-group-id" placeholder="ID del grupo (UUID)"/>
+    </div>
+
+    <button class="primary" id="btn-connect">Conectar</button>
+    <div id="login-error"></div>
+
+    <div id="group-id-box">
+      <b>ID del grupo (compártelo):</b><br/>
+      <span id="lbl-group-id-share"></span>
+      <button class="copy-btn" onclick="copyGroupId()">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<div id="chat-panel">
+  <div id="chat-header">
+    <span class="grp" id="lbl-group">Grupo</span>
+    <div id="typing-indicator"></div>
+  </div>
+  <div id="messages"></div>
+  <div id="input-area">
+    <input id="msg-input" placeholder="Escribe un mensaje… (Enter para enviar)" autocomplete="off"/>
+    <button id="btn-send">Enviar</button>
+  </div>
+</div>
+
+<script>
+const BASE = window.location.origin;
+let token = null, username = null, groupId = null, stompClient = null;
+let mode = 'create', typingTimeout = null, lastTypingSent = 0;
+const TYPING_THROTTLE = 2000;
+const typingUsers = new Map();
+
+const $ = id => document.getElementById(id);
+
+function setMode(m) {
+  mode = m;
+  $('tab-create').className = 'tab' + (m==='create'?' active':'');
+  $('tab-join').className   = 'tab' + (m==='join'  ?' active':'');
+  $('create-fields').style.display = m==='create'?'':'none';
+  $('join-fields').style.display   = m==='join'  ?'':'none';
+}
+
+function copyGroupId() {
+  navigator.clipboard.writeText($('lbl-group-id-share').textContent);
+  $('copy-btn') && ($('copy-btn').textContent = '¡Copiado!');
+  setTimeout(()=>{ const b=document.querySelector('.copy-btn'); if(b) b.textContent='Copiar'; },1500);
+}
+
+async function connect() {
+  const user = $('inp-username').value.trim();
+  const pass = $('inp-password').value.trim();
+  $('login-error').textContent = '';
+
+  if (!user || !pass) { $('login-error').textContent='Usuario y contraseña requeridos.'; return; }
+
+  // 1. Login o registro automático
+  let res = await fetch(`${BASE}/api/v1/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
+  if (!res.ok) {
+    const reg = await fetch(`${BASE}/api/v1/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass,email:user+'@chat.local'})});
+    if (!reg.ok) { $('login-error').textContent='Error al registrar.'; return; }
+    res = await fetch(`${BASE}/api/v1/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
+  }
+  if (!res.ok) { $('login-error').textContent='Credenciales incorrectas.'; return; }
+  const auth = await res.json();
+  token = auth.token; username = user;
+
+  // 2. Crear o unirse al grupo
+  if (mode === 'create') {
+    const name = $('inp-group-name').value.trim() || 'Grupo-'+Date.now();
+    const gr = await fetch(`${BASE}/api/v1/groups`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({name})});
+    if (!gr.ok) { $('login-error').textContent='Error al crear grupo.'; return; }
+    const g = await gr.json();
+    groupId = g.id;
+    // Mostrar ID para compartir
+    $('lbl-group-id-share').textContent = groupId;
+    $('group-id-box').style.display = 'block';
+    $('btn-connect').textContent = 'Entrando…';
+    setTimeout(openChat, 1200);
+  } else {
+    const gid = $('inp-group-id').value.trim();
+    if (!gid) { $('login-error').textContent='Pega el ID del grupo.'; return; }
+    // Intentar unirse como miembro
+    groupId = gid;
+    // addMember con requesterId=userId (el propio usuario se une)
+    const me = parseJwtUserId(token);
+    if (me) {
+      await fetch(`${BASE}/api/v1/groups/${groupId}/members`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({requesterId:me,targetUserId:me})}).catch(()=>{});
+    }
+    openChat();
+  }
+}
+
+// Decodifica el userId del JWT (payload base64)
+function parseJwtUserId(jwt) {
+  try {
+    const payload = JSON.parse(atob(jwt.split('.')[1]));
+    return payload.sub || payload.userId || null;
+  } catch { return null; }
+}
+
+function openChat() {
+  $('login-panel').style.display = 'none';
+  $('chat-panel').style.display  = 'flex';
+  $('lbl-group').textContent = groupId;
+  connectWS();
+}
+
+function connectWS() {
+  setStatus('Conectando…');
+  const sock = new SockJS(BASE+'/ws');
+  stompClient = Stomp.over(sock);
+  stompClient.debug = null;
+  stompClient.connect({'Authorization':'Bearer '+token}, () => {
+    setStatus('Conectado ✓');
+    addMsg('','Conectado — Grupo: '+groupId,false,true);
+    stompClient.subscribe('/topic/groups/'+groupId, msg => handleEvent(JSON.parse(msg.body)));
+  }, err => {
+    setStatus('Error WS');
+    addMsg('','Error: '+err,false,true);
+  });
+}
+
+function handleEvent(ev) {
+  if (!ev||!ev.type) return;
+  if (ev.type==='MESSAGE_NEW') {
+    const p = ev.payload;
+    const mine = p.senderUsername===username||p.senderId===username;
+    addMsg(p.senderUsername||'Usuario', p.content, mine);
+  } else if (ev.type==='TYPING_UPDATE') {
+    const p = ev.payload;
+    if (p.userId===username) return;
+    typingUsers.set(p.userId, p.typing);
+    if (!p.typing) typingUsers.delete(p.userId);
+    updateTyping();
+  }
+}
+
+function addMsg(user, text, mine, system=false) {
+  const d = document.createElement('div');
+  d.className = 'msg'+(system?' system':mine?' mine':' theirs');
+  d.innerHTML = system ? esc(text) : `<div class="meta">${esc(user)}</div>${esc(text)}`;
+  $('messages').appendChild(d);
+  $('messages').scrollTop = 9999;
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function updateTyping() {
+  const users = [...typingUsers.keys()].filter(k=>typingUsers.get(k));
+  const el = $('typing-indicator');
+  if (!users.length) { el.innerHTML=''; return; }
+  const names = users.length===1 ? esc(users[0])+' está escribiendo' : users.length+' personas escribiendo';
+  el.innerHTML = `${names} <span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
+}
+
+function sendMessage() {
+  const c = $('msg-input').value.trim();
+  if (!c||!stompClient) return;
+  stompClient.send('/app/groups/'+groupId+'/messages',{},JSON.stringify({content:c}));
+  $('msg-input').value='';
+  stopTyping();
+}
+
+function startTyping() {
+  if (!stompClient) return;
+  const now = Date.now();
+  if (now-lastTypingSent < TYPING_THROTTLE) return;
+  lastTypingSent = now;
+  stompClient.send('/app/groups/'+groupId+'/typing',{},JSON.stringify({eventType:'TYPING_STARTED'}));
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(stopTyping, 3000);
+}
+
+function stopTyping() {
+  clearTimeout(typingTimeout);
+  if (!stompClient) return;
+  stompClient.send('/app/groups/'+groupId+'/typing',{},JSON.stringify({eventType:'TYPING_STOPPED'}));
+}
+
+function setStatus(t){ $('status-bar').textContent=t; }
+
+// Eventos
+$('btn-connect').addEventListener('click', connect);
+$('btn-send').addEventListener('click', sendMessage);
+$('msg-input').addEventListener('keydown', e=>{
+  if (e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
+  else startTyping();
+});
+['inp-username','inp-password','inp-group-name','inp-group-id'].forEach(id=>{
+  $(id)&&$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') connect(); });
+});
+</script>
+</body>
+</html>

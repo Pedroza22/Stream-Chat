@@ -11,11 +11,18 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - streamchat-internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-streamchat} -d ${POSTGRES_DB:-streamchat}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768m
     restart: unless-stopped
 
   rabbitmq:
@@ -30,11 +37,18 @@ services:
       - "127.0.0.1:15672:15672"     # Management UI — solo accesible desde localhost
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - streamchat-internal
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 15s
       timeout: 10s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768m
     restart: unless-stopped
 
   zookeeper:
@@ -46,12 +60,19 @@ services:
     volumes:
       - zookeeper_data:/var/lib/zookeeper/data
       - zookeeper_log:/var/lib/zookeeper/log
+    networks:
+      - streamchat-internal
     healthcheck:
       test: ["CMD-SHELL", "echo ruok | nc localhost 2181 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512m
     restart: unless-stopped
 
   kafka:
@@ -75,12 +96,19 @@ services:
       - "127.0.0.1:9092:9092"               # Solo accesible desde localhost
     volumes:
       - kafka_data:/var/lib/kafka/data
+    networks:
+      - streamchat-internal
     healthcheck:
       test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
       interval: 15s
       timeout: 20s
       retries: 10
       start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
     restart: unless-stopped
 
   app:
@@ -109,15 +137,34 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       PRESENCE_TYPING_TTL_MS: ${PRESENCE_TYPING_TTL_MS:-5000}
       PRESENCE_EXPIRATION_SCAN_MS: ${PRESENCE_EXPIRATION_SCAN_MS:-2000}
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8090:8080"
+    networks:
+      - streamchat-internal
+      - streamchat-public
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q UP"]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 120s
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1152m
     restart: unless-stopped
+
+networks:
+  # Red interna: solo para comunicación entre contenedores (DB, brokers, app)
+  streamchat-internal:
+    driver: bridge
+    internal: true
+  # Red pública: solo la app la necesita para exponer el puerto 8080
+  streamchat-public:
+    driver: bridge
 
 volumes:
   postgres_data:

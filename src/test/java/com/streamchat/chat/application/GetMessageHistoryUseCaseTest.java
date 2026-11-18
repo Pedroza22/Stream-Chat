@@ -45,7 +45,6 @@ class GetMessageHistoryUseCaseTest {
 
         creatorId = UUID.randomUUID();
         groupId   = UUID.randomUUID();
-
         group = ChatGroup.create(creatorId, "Test Group", clock);
         group.addMember(UserId.of(creatorId), clock);
 

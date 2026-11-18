@@ -36,6 +36,7 @@ public class RabbitMqMessagePublisher implements MessageEventPublisher {
      *
      * @throws PublishException si el broker rechaza o no confirma en el timeout.
      */
+    @Override
     public void publish(MessageCreatedEvent event) {
         CorrelationData correlationData = new CorrelationData(event.eventId().toString());
 

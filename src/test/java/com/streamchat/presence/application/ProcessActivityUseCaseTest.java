@@ -1,9 +1,9 @@
 package com.streamchat.presence.application;
 
-import com.streamchat.FakeClientNotifier;
-import com.streamchat.chat.domain.valueobject.GroupId;
+import com.streamchat.contracts.ServerEvent;
 import com.streamchat.contracts.TypingUpdatePayload;
 import com.streamchat.contracts.UserActivityEvent;
+import com.streamchat.presence.FakeStatusEventPublisher;
 import com.streamchat.presence.application.usecase.ProcessActivityUseCaseImpl;
 import com.streamchat.presence.domain.service.TypingStateRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,14 +22,14 @@ class ProcessActivityUseCaseTest {
     private static final Instant T0 = Instant.parse("2024-01-01T00:00:00Z");
 
     private TypingStateRegistry registry;
-    private FakeClientNotifier notifier;
+    private FakeStatusEventPublisher publisher;
     private ProcessActivityUseCaseImpl useCase;
 
     @BeforeEach
     void setUp() {
-        registry = new TypingStateRegistry();
-        notifier = new FakeClientNotifier();
-        useCase = new ProcessActivityUseCaseImpl(registry, notifier, Clock.fixed(T0, ZoneOffset.UTC));
+        registry  = new TypingStateRegistry();
+        publisher = new FakeStatusEventPublisher();
+        useCase   = new ProcessActivityUseCaseImpl(registry, publisher, Clock.fixed(T0, ZoneOffset.UTC));
     }
 
     private static UserActivityEvent event(String type, UUID groupId, UUID userId) {
@@ -36,34 +37,50 @@ class ProcessActivityUseCaseTest {
     }
 
     @Test
-    void typingStarted_registersStateAndNotifiesGroup() {
+    void typingStarted_registersStateAndPublishesToFanout() {
         UUID groupId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        UUID userId  = UUID.randomUUID();
 
         useCase.handle(event("TYPING_STARTED", groupId, userId));
 
         assertThat(registry.activeCount()).isEqualTo(1);
-        assertThat(notifier.getNotifications()).hasSize(1);
-        var notification = notifier.getNotifications().get(0);
-        assertThat(notification.getKey()).isEqualTo(GroupId.of(groupId));
-        assertThat(notification.getValue().type()).isEqualTo("TYPING_UPDATE");
-        TypingUpdatePayload payload = (TypingUpdatePayload) notification.getValue().payload();
+        List<ServerEvent> events = publisher.getPublished();
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).type()).isEqualTo("TYPING_UPDATE");
+        TypingUpdatePayload payload = (TypingUpdatePayload) events.get(0).payload();
         assertThat(payload.typing()).isTrue();
         assertThat(payload.userId()).isEqualTo(userId);
+        assertThat(payload.groupId()).isEqualTo(groupId);
     }
 
     @Test
-    void typingStopped_removesStateAndNotifiesGroup() {
+    void typingStopped_removesStateAndPublishesToFanout() {
         UUID groupId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        UUID userId  = UUID.randomUUID();
         useCase.handle(event("TYPING_STARTED", groupId, userId));
+        publisher.clear();
 
         useCase.handle(event("TYPING_STOPPED", groupId, userId));
 
         assertThat(registry.activeCount()).isZero();
-        assertThat(notifier.getNotifications()).hasSize(2);
-        TypingUpdatePayload payload = (TypingUpdatePayload) notifier.getNotifications().get(1).getValue().payload();
+        List<ServerEvent> events = publisher.getPublished();
+        assertThat(events).hasSize(1);
+        TypingUpdatePayload payload = (TypingUpdatePayload) events.get(0).payload();
         assertThat(payload.typing()).isFalse();
+    }
+
+    @Test
+    void duplicateTypingStarted_doesNotPublishAgain() {
+        // El patrón State evita notificaciones duplicadas para el mismo estado
+        UUID groupId = UUID.randomUUID();
+        UUID userId  = UUID.randomUUID();
+        useCase.handle(event("TYPING_STARTED", groupId, userId));
+        publisher.clear();
+
+        // Segundo TYPING_STARTED — ya estaba activo, no debe publicar
+        useCase.handle(event("TYPING_STARTED", groupId, userId));
+
+        assertThat(publisher.getPublished()).isEmpty();
     }
 
     @Test
@@ -71,6 +88,6 @@ class ProcessActivityUseCaseTest {
         useCase.handle(event("SOMETHING_ELSE", UUID.randomUUID(), UUID.randomUUID()));
 
         assertThat(registry.activeCount()).isZero();
-        assertThat(notifier.getNotifications()).isEmpty();
+        assertThat(publisher.getPublished()).isEmpty();
     }
 }
