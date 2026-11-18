@@ -17,6 +17,10 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  presence:
+    typing-ttl-ms: ${PRESENCE_TYPING_TTL_MS:5000}
+    expiration-scan-ms: ${PRESENCE_EXPIRATION_SCAN_MS:2000}
+    publisher: ${PRESENCE_PUBLISHER:local}
 
 server:
   port: 8080

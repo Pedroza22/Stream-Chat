@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.time.Clock;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.streamchat")
 public class StreamChatApplication {
 
     public static void main(String[] args) {
