@@ -3,8 +3,13 @@
 # --- Etapa de construcción ---
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
-COPY pom.xml ./
+
+# 1) contracts es un módulo independiente (sin parent): se instala primero en el repo local
 COPY contracts/ ./contracts/
+RUN mvn -B -q -f contracts/pom.xml install -DskipTests
+
+# 2) la aplicación consume contracts desde el repositorio local de Maven
+COPY pom.xml ./
 COPY src/ ./src/
 RUN mvn -B -DskipTests package
 
