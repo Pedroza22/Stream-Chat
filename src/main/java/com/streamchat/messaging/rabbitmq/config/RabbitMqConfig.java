@@ -55,13 +55,18 @@ public class RabbitMqConfig {
     /**
      * Cadena de decoradores. @Primary hace que Spring inyecte este bean
      * donde se pida MessageEventPublisher (OutboxRelay, etc.).
+     *
+     * Logging → Metrics → Retrying → RabbitMqMessagePublisher
      */
     @Bean
     @Primary
     public MessageEventPublisher messageEventPublisher(RabbitMqMessagePublisher rabbitMqMessagePublisher,
                                                        MeterRegistry meterRegistry) {
         return new LoggingPublisher(
-                new MetricsPublisher(rabbitMqMessagePublisher, meterRegistry)
+                new MetricsPublisher(
+                        new com.streamchat.messaging.rabbitmq.publisher.RetryingMessageEventPublisher(
+                                rabbitMqMessagePublisher),
+                        meterRegistry)
         );
     }
 }

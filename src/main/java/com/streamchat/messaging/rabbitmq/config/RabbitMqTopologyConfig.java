@@ -135,4 +135,58 @@ public class RabbitMqTopologyConfig {
                 .to(streamchatDlxExchange)
                 .with(RabbitMqProperties.DEFAULT_MSG_DLQ);
     }
+
+    // ── Fanout Exchange para estados de typing (status_updates) ─────
+    //
+    // Flujo del enunciado §Flujo1:
+    //   typing_processor → [streamchat.status.updates] (fanout)
+    //                            └─► [streamchat.status.updates.queue]
+    //                                      └─► status_backend → WebSocket
+    //
+    // El Fanout garantiza que cualquier consumidor adicional reciba
+    // una copia del evento sin routing keys adicionales.
+
+    @Bean
+    FanoutExchange statusUpdatesFanoutExchange() {
+        return ExchangeBuilder
+                .fanoutExchange(RabbitMqProperties.STATUS_FANOUT_EXCHANGE)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    Queue statusUpdatesQueue() {
+        return QueueBuilder
+                .durable(RabbitMqProperties.STATUS_UPDATES_QUEUE)
+                .build();
+    }
+
+    @Bean
+    Binding statusUpdatesBinding(Queue statusUpdatesQueue,
+                                 FanoutExchange statusUpdatesFanoutExchange) {
+        return BindingBuilder
+                .bind(statusUpdatesQueue)
+                .to(statusUpdatesFanoutExchange);
+    }
+
+    // ── Binding de auditoría: chat.# → audit_bridge ─────────────────
+    //
+    // audit_bridge escucha todo el tráfico del exchange principal
+    // con routing key "chat.#" para reenviar a Kafka message_audit_log.
+
+    @Bean
+    Queue auditBridgeQueue() {
+        return QueueBuilder
+                .durable("streamchat.audit.bridge")
+                .build();
+    }
+
+    @Bean
+    Binding auditBridgeBinding(Queue auditBridgeQueue,
+                               TopicExchange streamchatEventsExchange) {
+        return BindingBuilder
+                .bind(auditBridgeQueue)
+                .to(streamchatEventsExchange)
+                .with("message.#");
+    }
 }

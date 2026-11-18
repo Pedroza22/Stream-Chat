@@ -51,6 +51,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**", "/ws/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/actuator/**").authenticated()
+                // Recursos estáticos públicos (chat.html, JS, CSS)
+                .requestMatchers("/", "/chat.html", "/*.html", "/*.js", "/*.css",
+                                 "/static/**", "/webjars/**", "/favicon.ico").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

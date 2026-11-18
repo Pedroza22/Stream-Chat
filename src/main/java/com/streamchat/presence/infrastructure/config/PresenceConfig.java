@@ -1,6 +1,7 @@
 package com.streamchat.presence.infrastructure.config;
 
 import com.streamchat.presence.application.port.in.ProcessActivityUseCase;
+import com.streamchat.presence.application.port.out.StatusEventPublisher;
 import com.streamchat.presence.application.usecase.ProcessActivityUseCaseImpl;
 import com.streamchat.presence.domain.policy.ExpirationPolicy;
 import com.streamchat.presence.domain.policy.TtlExpirationPolicy;

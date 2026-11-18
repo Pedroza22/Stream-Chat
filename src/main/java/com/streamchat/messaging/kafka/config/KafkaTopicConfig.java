@@ -32,4 +32,20 @@ public class KafkaTopicConfig {
                 .config("max.message.bytes", "1048576") // 1 MB
                 .build();
     }
+
+    /**
+     * Topic de auditoría de mensajes de chat.
+     * audit_bridge publica aquí; analytics_service consume y persiste en PostgreSQL.
+     * Retención larga (7 días) — es el log inmutable de mensajes.
+     */
+    @Bean
+    NewTopic messageAuditLogTopic() {
+        return TopicBuilder
+                .name("message_audit_log")
+                .partitions(1)
+                .replicas(1)
+                .config("retention.ms",   "604800000")  // 7 días
+                .config("cleanup.policy", "delete")
+                .build();
+    }
 }
